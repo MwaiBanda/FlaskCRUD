@@ -1,6 +1,6 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-
+from .shared.db import db
+from .data.Book import Book
 app = Flask(__name__)
 
 """
@@ -11,17 +11,7 @@ author
 publisher
 """
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///books.db'
-db = SQLAlchemy(app)
-
-
-class Book(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    book_name = db.Column(db.String(100), unique=True)
-    author = db.Column(db.String(100))
-    publisher = db.Column(db.String(100))
-
-    def __repr__(self):
-        return f'{self.book_name} by {self.author}'
+db.init_app(app)
 
 
 @app.route('/')
@@ -30,7 +20,7 @@ def home():
 
 
 @app.route('/books')
-def getBooks():
+def getAllBooks():
     books = Book.query.all()
     result = []
     for book in books:
@@ -44,14 +34,15 @@ def getBooks():
 
     return {'books': result}
 
+
 @app.route('/books/<id>')
-def getbook(id):
+def getBook(id):
     book = Book.query.get_or_404(id)
     result = {
-            'id': book.id,
-            'book_name': book.book_name,
-            'author': book.author,
-            'publisher': book.publisher
+        'id': book.id,
+        'book_name': book.book_name,
+        'author': book.author,
+        'publisher': book.publisher
 
     }
     return result
